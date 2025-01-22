@@ -20,11 +20,11 @@ phi = 0.04 #per ms
 
 
 
-I_app = 300 #pA
+#I_app = 300 #pA
 
 
 
-def f(t, x):
+def f(t, x, I_app=300):
     V,w=x
     
     m_inf = 0.5*(1 + np.tanh((V - v1)/v2))
@@ -40,16 +40,16 @@ def f(t, x):
     
     return dxdt
 
-sol=solve_ivp(f, t_span=[0, 200], y0 =[-20, 0])
-#print(sol.y)
 
 
 
 fig, ax = plt.subplots()
 
+I_app = [300, 150, 60, 0]
 
-
-ax.plot(sol.t, sol.y[0, :], label = f"I_app = 300 pA")
+for i in I_app:
+    sol=solve_ivp(f, t_span=[0, 200], y0 =[-20, 0], args=(i,))
+    ax.plot(sol.t, sol.y[0, :], label = f"I_app = {i} pA")
 
 plt.xlabel("t (ms)")
 plt.ylabel("V (mV)")
@@ -58,7 +58,6 @@ plt.legend()
 plt.show()
 
  
-I_app = [300, 150, 60, 0]
 
 
 
