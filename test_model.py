@@ -42,7 +42,6 @@ def f(t, x, I_app=300):
 
 
 
-
 fig, ax = plt.subplots()
 
 I_app = [300, 150, 60, 0]
@@ -55,7 +54,35 @@ plt.xlabel("t (ms)")
 plt.ylabel("V (mV)")
 plt.legend()
 
-plt.show()
+plt.savefig("V vs t.png")
+
+
+#making the phase portrait
+I_app =150
+V = np.arange(-75, 75, 5)
+w = np.arange(0, 1, 0.01)
+
+VV, ww = np.meshgrid(V, w)
+
+m_inf = 0.5*(1 + np.tanh((VV - v1)/v2))
+w_inf = 0.5*(1 + np.tanh((VV - v3)/v4))
+tau = 1/np.cosh((VV - v3)/(2*v4))
+
+dVdt = (- g_Ca * m_inf * (VV - V_Ca) - g_K * ww * ( VV - V_K) - g_L *(VV - V_L) + I_app)/C
+dwdt = phi * (w_inf - ww)/ tau
+
+fig, ax = plt.subplots()
+
+
+ax.streamplot(V, w, dVdt, dwdt)
+
+
+plt.xlabel("V (mV)")
+plt.ylabel("w")
+#plt.legend()
+
+plt.savefig("phase portrait.png")
+
 
  
 
