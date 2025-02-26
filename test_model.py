@@ -24,7 +24,7 @@ phi = 0.04 #per ms
 
 
 
-def f(t, x, I_app=300):
+def Morris_Lecar(t, x, I_app=300):
     V,w=x
     
     m_inf = 0.5*(1 + np.tanh((V - v1)/v2))
@@ -47,14 +47,15 @@ fig, ax = plt.subplots()
 I_app = [300, 150, 60, 0]
 
 for i in I_app:
-    sol=solve_ivp(f, t_span=[0, 200], y0 =[-20, 0], args=(i,))
-    ax.plot(sol.t, sol.y[0, :], label = f"I_app = {i} pA")
+    sol=solve_ivp(f, t_span=[0, 2000], y0 =[40, 0.1], args=(i,), max_step = 0.05)
+    ax.plot(sol.y[0,:], sol.y[1, :], label = f"I_app = {i} pA")
 
-plt.xlabel("t (ms)")
-plt.ylabel("V (mV)")
+plt.xlabel("V (mV)")
+plt.ylabel("w")
 plt.legend()
 
-plt.savefig("V vs t.png")
+plt.savefig("V vs w version7.png")
+
 
 
 #making the phase portrait

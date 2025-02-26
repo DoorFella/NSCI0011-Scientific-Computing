@@ -54,6 +54,8 @@ fig, ax = plt.subplots()
 for i in I_app:
     Vdot= Vdotzero(V, I_app=i)
     ax.plot(V, Vdot, label= f"I_app = {i}pA")
+    idx = np.argwhere(np.diff(np.sign(Vdot - wdotzero))).flatten()
+    ax.plot(V[idx], Vdot[idx], 'ro')
 
 
 
