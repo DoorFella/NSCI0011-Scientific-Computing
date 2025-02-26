@@ -1,10 +1,55 @@
 from scipy.integrate import solve_ivp
+from scipy.optimize import fsolve
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import optimize
+from numpy import linalg as LA
 
 #Morris-Lecar model
 
-def Morris_Lecar(t, x, I_app=300):
+def m_inf(V, v1, v2):
+    """returns the an array of m_inf given an array of V values
+
+    Args:
+        V (array): Potential difference
+        v1 (int): 
+        v2 (int): 
+
+    Returns:
+        array: Array of m_inf values
+    """
+    return 0.5*(1+ np.tanh((V - v1)/v2))
+
+def w_inf(V, v3, v4):
+    """returns the an array of w_inf given an array of V values
+
+    Args:
+        V (array): Potential difference
+        v3 (int): 
+        v4 (float): 
+
+    Returns:
+        array: Array of w_inf values
+    """
+    return 0.5*(1 + np.tanh((V - v3)/v4))
+
+def tau(V, v3, v4):
+    """returns the an array of tau given an array of V values
+
+    Args:
+        V (array): Potential difference
+        v3 (int): 
+        v4 (float): 
+
+    Returns:
+        array: Array of tau values
+    """
+    
+    return 1/np.cosh((V - v3)/(2*v4))
+
+
+
+def Morris_Lecar(t, x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,v3 = 2,v4 = 30,phi = 0.04):
     """Function which defines the Morris-Lecar model.
 
     Args:
@@ -18,21 +63,18 @@ def Morris_Lecar(t, x, I_app=300):
     
     V,w=x
     
-    m_inf = 0.5*(1 + np.tanh((V - v1)/v2))
-    w_inf = 0.5*(1 + np.tanh((V - v3)/v4))
-    tau = 1/np.cosh((V - v3)/(2*v4))
 
     
     dxdt = [
-        (- g_Ca * m_inf * (V - V_Ca) - g_K * w * ( V - V_K) - g_L *(V - V_L) + I_app)/C,
+        (- g_Ca * m_inf(V,v1,v2) * (V - V_Ca) - g_K * w * ( V - V_K) - g_L *(V - V_L) + I_app)/C,
         
-        phi * (w_inf - w)/ tau
+        phi * (w_inf(V,v3,v4) - w)/ tau(V,v3,v4)
     ]
     
     return dxdt
 
 
-def ML_fsolve(x, I_app=300):
+def ML_fsolve(x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,v3 = 2,v4 = 30,phi = 0.04):
     """Morris-Lecar model, used with the fsolve function, since it doesn't use time as a parameter
 
     Args:
@@ -46,21 +88,16 @@ def ML_fsolve(x, I_app=300):
     V, w = x
 
     
-    m_inf = 0.5*(1 + np.tanh((V - v1)/v2))
-    w_inf = 0.5*(1 + np.tanh((V - v3)/v4))
-    tau = 1/np.cosh((V - v3)/(2*v4))
-
-    
     dxdt = [
-        (- g_Ca * m_inf * (V - V_Ca) - g_K * w * ( V - V_K) - g_L *(V - V_L) + I_app)/C,
+        (- g_Ca * m_inf(V,v1,v2) * (V - V_Ca) - g_K * w * ( V - V_K) - g_L *(V - V_L) + I_app)/C,
         
-        phi * (w_inf - w)/ tau
+        phi * (w_inf(V,v3,v4) - w)/ tau(V,v3,v4)
     ]
     
     return dxdt
 
 
-def Vdotzero(V, I_app=300):
+def Vdotzero(V, I_app=300, V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18):
     """Returns the vertical nullcline in the Morris-Lecar model $\dot{V} = 0$
 
     Args:
@@ -71,18 +108,16 @@ def Vdotzero(V, I_app=300):
         numpy array: Returns a numpy array of w when $\dot{V} = 0$
     """
     
-    m_inf = 0.5*(1 + np.tanh((V - v1)/v2))
-    
-    tau = 1/np.cosh((V - v3)/(2*v4))
+
 
     
-    w= ( g_Ca * m_inf * (V - V_Ca) +g_L *(V - V_L) - I_app)/(- g_K * ( V - V_K))
+    w= ( g_Ca * m_inf(V, v1, v2) * (V - V_Ca) +g_L *(V - V_L) - I_app)/(- g_K * ( V - V_K))
         
     
     return w
 
 
-def wdotzero(V):
+def wdotzero(V, v3=2,v4=30):
     """Returns the horizontal nullcline of the Morris-Lecar model, i.e. when $\dot{w} = 0$. This coincides with w_inf
 
     Args:
@@ -94,45 +129,6 @@ def wdotzero(V):
     w_inf = 0.5*(1 + np.tanh((V - v3)/v4))
     return w_inf
 
-def m_inf(V, v1=-20, v2=24):
-    """returns the an array of m_inf given an array of V values
-
-    Args:
-        V (array): Potential difference
-        v1 (int): 
-        v2 (int): 
-
-    Returns:
-        array: Array of m_inf values
-    """
-    return 0.5*(1+ np.tanh((V - v1))/v2)
-
-def w_inf(V, v3 = -16, v4 = 11.2):
-    """returns the an array of w_inf given an array of V values
-
-    Args:
-        V (array): Potential difference
-        v3 (int): 
-        v4 (float): 
-
-    Returns:
-        array: Array of w_inf values
-    """
-    return 0.5*(1 + np.tanh((V - v3)/v4))
-
-def tau(V, v3 = -16, v4 = 11.2):
-    """returns the an array of tau given an array of V values
-
-    Args:
-        V (array): Potential difference
-        v3 (int): 
-        v4 (float): 
-
-    Returns:
-        array: Array of tau values
-    """
-    
-    return 1/np.cosh((V - v3)/(2*v4))
 
 #Chay-Keizer model
 
@@ -166,7 +162,7 @@ def I_Ca(V, g_Ca=1000, V_Ca=25, v1=-20,v2=24):
     Returns:
         array: Ca current
     """
-    return g_Ca * (V - V_Ca) * 0.5*(1+ np.tanh((V - v1))/v2)
+    return g_Ca *m_inf(V,v1,v2)* (V - V_Ca)
 
 def I_K(V, w, g_K = 2700, V_K = -75, ):
     """Returns an array of K current given array of V - voltage and w - fraction of open ion channels.
@@ -198,7 +194,7 @@ def I_L(V, g_L = 150, V_L = -75):
 
 
 
-def chay_Keizer(t, x, f_i = 0.004, vLPM = 0.18):
+def chay_Keizer(t, x, f_i = 0.004, vLPM = 0.18, Cm = 5300, g_Ca = 1000, V_Ca = 25, g_K = 2700, V_K = -75, I_app = 0, v1 = -20, v2 = 24, v3 = -16, v4 = 11.2, phi = 0.035, g_L = 150, V_L = -75, g_KCa = 2000, K_KCa = 5, alpha = 0.0000045):
     """returns the full Chay-Keizer model.
 
     Args:
@@ -208,32 +204,33 @@ def chay_Keizer(t, x, f_i = 0.004, vLPM = 0.18):
     Returns:
         array: returns RHS of the ODEs
     """
-    Cm = 5300 #fF
-    g_Ca = 1000 #pS
-    V_Ca = 25 #mV
-    g_K = 2700 #pS
-    V_K = -75 #mV
-    I_app = 0
-    v1 = -20 #mV
-    v2 = 24
-    v3 = -16 #mV
-    v4 = 11.2 #mV
-    phi = 0.035 #/ms
-    g_L = 150 #pS
-    V_L = -75 #mV
-    g_KCa = 2000 #pS
-    K_KCa = 5 #micro M
-    f = 0.001 
-    alpha = 0.0000045 #micro M /(fA * ms)
-        
     
     V, w, Cai = x
-
     
     dxdt = [
-        (- I_Ca(V, g_Ca,V_Ca) - I_K(V, w, g_K, V_K) - I_L(V, g_L, V_L) - I_KCa(V, Cai, g_KCa, V_K, K_KCa)) / Cm,
-        phi * (0.5*(1 + np.tanh((V - v3)/v4)) - w)/ tau(V, v3, v4),
-        f_i *(-alpha* I_Ca(V, g_Ca,V_Ca) - vLPM * Cai)
+        (- I_Ca(V,g_Ca,V_Ca,v1,v2) - I_K(V,w,g_K,V_K) - I_L(V,g_L,V_L) - I_KCa(V, Cai, g_KCa, V_K, K_KCa)) / Cm,
+        phi * (w_inf(V,v3,v4) - w)/ tau(V,v3,v4),
+        f_i *(-alpha* I_Ca(V,g_Ca,V_Ca,v1,v2) - vLPM * Cai)
         
     ]
     return dxdt
+
+#def find_eigvals_2D(callback, length=300):
+#    varied = np.linspace(0, 300, length)
+#    eigenvalues=np.zeros(length)
+#    eigenvectors=np.zeros(length)
+#    V = np.zeros(length)
+#    w = np.zeros(length)
+#
+#    for i in range(len(varied)):
+#        sol = fsolve(callback, [1,1], args=(varied[i],))
+#        V[i], w[i] = sol
+#        J=optimize.approx_fprime([V[i], w[i]], callback)
+#
+#        eigenvalues[i], eigenvectors[i] = LA.eig(J)
+#    
+#        if np.real(eigenvalues[0])>=0:
+#        stability[i] = 1
+#        
+#        
+    
