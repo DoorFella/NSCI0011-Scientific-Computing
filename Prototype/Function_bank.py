@@ -215,6 +215,27 @@ def chay_Keizer(t, x, f_i = 0.004, vLPM = 0.18, Cm = 5300, g_Ca = 1000, V_Ca = 2
     ]
     return dxdt
 
+def CK_fsolve_Cai(x, Cai,f_i = 0.004, vLPM = 0.18, Cm = 5300, g_Ca = 1000, V_Ca = 25, g_K = 2700, V_K = -75, I_app = 0, v1 = -20, v2 = 24, v3 = -16, v4 = 11.2, phi = 0.035, g_L = 150, V_L = -75, g_KCa = 2000, K_KCa = 5, alpha = 0.0000045):
+    """returns the full Chay-Keizer model.
+
+    Args:
+        t (): dummy time variable used for ivp_solve
+        x (array): 2D array of V, w, and Cai - Voltage, fraction of open channels, calcium concentration
+
+    Returns:
+        array: returns RHS of the ODEs
+    """
+    
+    V, w= x
+    
+    dxdt = [
+        (- I_Ca(V,g_Ca,V_Ca,v1,v2) - I_K(V,w,g_K,V_K) - I_L(V,g_L,V_L) - I_KCa(V, Cai, g_KCa, V_K, K_KCa)) / Cm,
+        phi * (w_inf(V,v3,v4) - w)/ tau(V,v3,v4),
+        #f_i *(-alpha* I_Ca(V,g_Ca,V_Ca,v1,v2) - vLPM * Cai)
+        
+    ]
+    return dxdt
+
 #def find_eigvals_2D(callback, length=300):
 #    varied = np.linspace(0, 300, length)
 #    eigenvalues=np.zeros(length)
