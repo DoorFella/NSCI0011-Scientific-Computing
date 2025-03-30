@@ -47,33 +47,6 @@ def tau(V, v3, v4):
     
     return 1/np.cosh((V - v3)/(2*v4))
 
-
-
-def Morris_Lecar(t, x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,v3 = 2,v4 = 30,phi = 0.04):
-    """Function which defines the Morris-Lecar model.
-
-    Args:
-        t: Time dummy variable needed for ivp_solve in scipy
-        x (2D numpy array): contains the V and w variables. needed for ivp_solve from scipy
-        I_app (int, optional): Applied current. Defaults to 300.
-
-    Returns:
-        numpy array: numpy array of the Morris-Lecar model.
-    """
-    
-    V,w=x
-    
-
-    
-    dxdt = [
-        (- g_Ca * m_inf(V,v1,v2) * (V - V_Ca) - g_K * w * ( V - V_K) - g_L *(V - V_L) + I_app)/C,
-        
-        phi * (w_inf(V,v3,v4) - w)/ tau(V,v3,v4)
-    ]
-    
-    return dxdt
-
-
 def ML_fsolve(x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,v3 = 2,v4 = 30,phi = 0.04):
     """Morris-Lecar model, used with the fsolve function, since it doesn't use time as a parameter
 
@@ -95,6 +68,21 @@ def ML_fsolve(x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L 
     ]
     
     return dxdt
+
+def Morris_Lecar(t, x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,v3 = 2,v4 = 30,phi = 0.04):
+    """Function which defines the Morris-Lecar model.
+
+    Args:
+        t: Time dummy variable needed for ivp_solve in scipy
+        x (2D numpy array): contains the V and w variables. needed for ivp_solve from scipy
+        I_app (int, optional): Applied current. Defaults to 300.
+
+    Returns:
+        numpy array: numpy array of the Morris-Lecar model.
+    """
+    return ML_fsolve(x, I_app=300, C = 20,V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,v3 = 2,v4 = 30,phi = 0.04)
+
+    
 
 
 def Vdotzero(V, I_app=300, V_K = - 84,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18):
@@ -235,6 +223,11 @@ def CK_fsolve_Cai(x, Cai,f_i = 0.004, vLPM = 0.18, Cm = 5300, g_Ca = 1000, V_Ca 
         
     ]
     return dxdt
+
+
+def Vdotzero_CK(V, Cai, I_app=300, V_K = - 75,g_K = 8,V_Ca = 120,g_Ca = 4.4,V_L = -60,g_L = 2,v1 = -1.2,v2 = 18,  g_KCa = 2000, K_KCa = 5):
+    w = -I_Ca(V,g_Ca,V_Ca,v1,v2) - I_L(V,g_L,V_L) - I_KCa(V, Cai, g_KCa, V_K, K_KCa) / (- g_K * ( V - V_K))
+    
 
 #def find_eigvals_2D(callback, length=300):
 #    varied = np.linspace(0, 300, length)

@@ -44,10 +44,10 @@ def Morris_Lecar(t, x, I_app=300):
 
 fig, ax = plt.subplots()
 
-I_app = [300, 150, 60, 0]
+I_app = [100, 150, 200, 0]
 
 for i in I_app:
-    sol=solve_ivp(f, t_span=[0, 2000], y0 =[40, 0.1], args=(i,), max_step = 0.05)
+    sol=solve_ivp(Morris_Lecar, t_span=[0, 2000], y0 =[-20, 0.4], args=(i,), max_step = 0.05)
     ax.plot(sol.y[0,:], sol.y[1, :], label = f"I_app = {i} pA")
 
 plt.xlabel("V (mV)")
